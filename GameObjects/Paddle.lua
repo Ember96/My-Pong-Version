@@ -32,9 +32,10 @@ function Paddle:init(x, y, width, height)
     self.width = width
     self.height = height
     self.dy = 0
+    self.speed = 200
 end
 
-function Paddle:update(dt)
+function Paddle:limit(dt)
     -- math.max here ensures that we're the greater of 0 or the player's
     -- current calculated Y position when pressing up so that we don't
     -- go into the negatives; the movement calculation is simply our
@@ -50,16 +51,57 @@ function Paddle:update(dt)
     end
 end
 
-function Paddle:shrink()
-    self.height = self.height - 1
+--[[
+    Gets and sets to encapsulate object properties in order to avoid
+    direct modifications to those, thus providing encapsulation and
+    modularity to improve maintainability and readability.
+]]
+-- Returns the current speed of the paddle
+function Paddle:getSpeed()
+    return self.speed
+end
+
+-- Sets the current speed of the paddle
+function Paddle:setSpeed(speed)
+    self.speed = speed
+end
+
+-- Returns the current height of the paddle
+function Paddle:getHeight()
+    return self.height
+end
+
+-- Sets the current height of the paddle
+function Paddle:setHeight(height)
+    self.height = height
 end
 
 --[[
-    To be called by our main function in `love.draw`, ideally. Uses
-    LÖVE2D's `rectangle` function, which takes in a draw mode as the first
-    argument as well as the position and dimensions for the rectangle. To
-    change the color, one must call `love.graphics.setColor`. As of the
-    newest version of LÖVE2D, you can even draw rounded rectangles!
+    Those are function related to features that affect the Paddle
+    properties and are meant to be called by the main function in 'love.draw'.
+]]
+-- Shirnks the paddle by 1 unit of its height
+function Paddle:shrink()
+    self.height = self.height - 5
+end
+
+-- Duplicates the Paddle height
+function Paddle:grow()
+    self.height = self.height * 2
+end
+
+-- Moves the paddle up
+function Paddle:moveUp()
+    self.dy = -self.speed
+end
+
+-- Moves the paddle down
+function Paddle:moveDown()
+    self.dy = self.speed
+end
+
+--[[
+    To be called by our main function in `love.draw` to draw the paddle
 ]]
 function Paddle:render()
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
