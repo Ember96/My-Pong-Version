@@ -1,4 +1,5 @@
 -- push.lua v0.2
+-- Updated for LÖVE 11.x compatibility
 
 -- Copyright (c) 2017 Ulysse Ramage
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -18,37 +19,38 @@ local push = {
 }
 setmetatable(push, push)
 
---TODO: rendering resolution?
---TODO: clean up code
-
+-- Apply settings to the push instance
 function push:applySettings(settings)
   for k, v in pairs(settings) do
     self["_" .. k] = v
   end
 end
 
-function push:resetSettings() return self:applySettings(self.defaults) end
+-- Reset settings to default values
+function push:resetSettings() 
+  return self:applySettings(self.defaults) 
+end
 
+-- Setup the screen with the given dimensions and settings
 function push:setupScreen(WWIDTH, WHEIGHT, RWIDTH, RHEIGHT, settings)
-
   settings = settings or {}
 
   self._WWIDTH, self._WHEIGHT = WWIDTH, WHEIGHT
   self._RWIDTH, self._RHEIGHT = RWIDTH, RHEIGHT
 
-  self:applySettings(self.defaults) --set defaults first
-  self:applySettings(settings) --then fill with custom settings
+  self:applySettings(self.defaults) -- Set defaults first
+  self:applySettings(settings) -- Then fill with custom settings
   
-  love.window.setMode( self._RWIDTH, self._RHEIGHT, {
+  love.window.setMode(self._RWIDTH, self._RHEIGHT, {
     fullscreen = self._fullscreen,
     resizable = self._resizable,
     highdpi = self._highdpi
-  } )
+  })
 
   self:initValues()
 
   if self._canvas then
-    self:setupCanvas({ "default" }) --setup canvas
+    self:setupCanvas({"default"}) -- Setup canvas
   end
 
   self._borderColor = {0, 0, 0}
@@ -61,8 +63,9 @@ function push:setupScreen(WWIDTH, WHEIGHT, RWIDTH, RHEIGHT, settings)
   return self
 end
 
+-- Setup the canvas
 function push:setupCanvas(canvases)
-  table.insert(canvases, { name = "_render" }) --final render
+  table.insert(canvases, {name = "_render"}) -- Final render
 
   self._canvas = true
   self.canvases = {}
@@ -78,10 +81,13 @@ function push:setupCanvas(canvases)
   return self
 end
 
+-- Set the active canvas
 function push:setCanvas(name)
   if not self._canvas then return true end
-  return love.graphics.setCanvas( self:getCanvasTable(name).canvas )
+  return love.graphics.setCanvas(self:getCanvasTable(name).canvas)
 end
+
+-- Get the canvas table by name
 function push:getCanvasTable(name)
   for i = 1, #self.canvases do
     if self.canvases[i].name == name then
@@ -89,6 +95,8 @@ function push:getCanvasTable(name)
     end
   end
 end
+
+-- Set the shader for a canvas
 function push:setShader(name, shader)
   if not shader then
     self:getCanvasTable("_render").shader = name
@@ -97,29 +105,33 @@ function push:setShader(name, shader)
   end
 end
 
+-- Initialize internal values based on current settings
 function push:initValues()
-  self._PSCALE = self._highdpi and love.window.getPixelScale() or 1
+  self._PSCALE = self._highdpi and love.window.getDPIScale() or 1
   
   self._SCALE = {
-    x = self._RWIDTH/self._WWIDTH * self._PSCALE,
-    y = self._RHEIGHT/self._WHEIGHT * self._PSCALE
+    x = self._RWIDTH / self._WWIDTH * self._PSCALE,
+    y = self._RHEIGHT / self._WHEIGHT * self._PSCALE
   }
   
-  if self._stretched then --if stretched, no need to apply offset
+  if self._stretched then -- If stretched, no need to apply offset
     self._OFFSET = {x = 0, y = 0}
   else
     local scale = math.min(self._SCALE.x, self._SCALE.y)
     if self._pixelperfect then scale = math.floor(scale) end
     
-    self._OFFSET = {x = (self._SCALE.x - scale) * (self._WWIDTH/2), y = (self._SCALE.y - scale) * (self._WHEIGHT/2)}
-    self._SCALE.x, self._SCALE.y = scale, scale --apply same scale to X and Y
+    self._OFFSET = {
+      x = (self._SCALE.x - scale) * (self._WWIDTH / 2),
+      y = (self._SCALE.y - scale) * (self._WHEIGHT / 2)
+    }
+    self._SCALE.x, self._SCALE.y = scale, scale -- Apply same scale to X and Y
   end
   
   self._GWIDTH = self._RWIDTH * self._PSCALE - self._OFFSET.x * 2
   self._GHEIGHT = self._RHEIGHT * self._PSCALE - self._OFFSET.y * 2
 end
 
---[[ DEPRECATED ]]--
+-- Deprecated apply method
 function push:apply(operation, shader)
   if operation == "start" then
     self:start()
@@ -128,44 +140,46 @@ function push:apply(operation, shader)
   end
 end
 
+-- Start drawing to the push canvas
 function push:start()
   if self._canvas then
     love.graphics.push()
     love.graphics.setCanvas(self.canvases[1].canvas)
   else
     love.graphics.translate(self._OFFSET.x, self._OFFSET.y)
-    love.graphics.setScissor(self._OFFSET.x, self._OFFSET.y, self._WWIDTH*self._SCALE.x, self._WHEIGHT*self._SCALE.y)
+    love.graphics.setScissor(self._OFFSET.x, self._OFFSET.y, self._WWIDTH * self._SCALE.x, self._WHEIGHT * self._SCALE.y)
     love.graphics.push()
     love.graphics.scale(self._SCALE.x, self._SCALE.y)
   end
 end
 
+-- Finish drawing to the push canvas
 function push:finish(shader)
-  love.graphics.setBackgroundColor(unpack(self._borderColor))
+  love.graphics.setBackgroundColor(self._borderColor)
   if self._canvas then
     local _render = self:getCanvasTable("_render")
 
     love.graphics.pop()
 
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1, 1, 1) -- Normalized color values for LÖVE 11.x
 
-    --draw canvas
+    -- Draw canvas
     love.graphics.setCanvas(_render.canvas)
-    for i = 1, #self.canvases - 1 do --do not draw _render yet
+    for i = 1, #self.canvases - 1 do -- Do not draw _render yet
       local _table = self.canvases[i]
       love.graphics.setShader(_table.shader)
       love.graphics.draw(_table.canvas)
     end
     love.graphics.setCanvas()
 
-    --draw render
+    -- Draw render
     love.graphics.translate(self._OFFSET.x, self._OFFSET.y)
     love.graphics.setShader(shader or self:getCanvasTable("_render").shader)
     love.graphics.draw(self:getCanvasTable("_render").canvas, 0, 0, 0, self._SCALE.x, self._SCALE.y)
 
-    --clear canvas
+    -- Clear canvas
     for i = 1, #self.canvases do
-      love.graphics.setCanvas( self.canvases[i].canvas )
+      love.graphics.setCanvas(self.canvases[i].canvas)
       love.graphics.clear()
     end
 
@@ -177,10 +191,12 @@ function push:finish(shader)
   end
 end
 
+-- Set the border color
 function push:setBorderColor(color, g, b)
   self._borderColor = g and {color, g, b} or color
 end
 
+-- Convert coordinates from screen to game
 function push:toGame(x, y)
   x, y = x - self._OFFSET.x, y - self._OFFSET.y
   local normalX, normalY = x / self._GWIDTH, y / self._GHEIGHT
@@ -191,16 +207,17 @@ function push:toGame(x, y)
   return x, y
 end
 
---doesn't work - TODO
+-- Convert coordinates from game to real
 function push:toReal(x, y)
-  return x+self._OFFSET.x, y+self._OFFSET.y
+  return x + self._OFFSET.x, y + self._OFFSET.y
 end
 
+-- Toggle fullscreen mode
 function push:switchFullscreen(winw, winh)
   self._fullscreen = not self._fullscreen
   local windowWidth, windowHeight = love.window.getDesktopDimensions()
   
-  if self._fullscreen then --save windowed dimensions for later
+  if self._fullscreen then -- Save windowed dimensions for later
     self._WINWIDTH, self._WINHEIGHT = self._RWIDTH, self._RHEIGHT
   elseif not self._WINWIDTH or not self._WINHEIGHT then
     self._WINWIDTH, self._WINHEIGHT = windowWidth * .5, windowHeight * .5
@@ -213,20 +230,32 @@ function push:switchFullscreen(winw, winh)
   
   love.window.setFullscreen(self._fullscreen, "desktop")
   if not self._fullscreen and (winw or winh) then
-    love.window.setMode(self._RWIDTH, self._RHEIGHT) --set window dimensions
+    love.window.setMode(self._RWIDTH, self._RHEIGHT) -- Set window dimensions
   end
 end
 
+-- Resize the screen
 function push:resize(w, h)
-  local pixelScale = love.window.getPixelScale()
+  local pixelScale = love.window.getDPIScale()
   if self._highdpi then w, h = w / pixelScale, h / pixelScale end
   self._RWIDTH = w
   self._RHEIGHT = h
   self:initValues()
 end
 
-function push:getWidth() return self._WWIDTH end
-function push:getHeight() return self._WHEIGHT end
-function push:getDimensions() return self._WWIDTH, self._WHEIGHT end
+-- Get the game width
+function push:getWidth() 
+  return self._WWIDTH 
+end
+
+-- Get the game height
+function push:getHeight() 
+  return self._WHEIGHT 
+end
+
+-- Get the game dimensions
+function push:getDimensions() 
+  return self._WWIDTH, self._WHEIGHT 
+end
 
 return push

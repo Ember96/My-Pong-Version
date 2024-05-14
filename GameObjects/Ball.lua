@@ -14,6 +14,19 @@
 
 Ball = Class{}
 
+--[[
+    The `init` function on our class is called just once, when the object
+    is first created. Used to set up all variables in the class and get it
+    ready for use.
+
+    Our Ball should take an X and a Y, for positioning, as well as a width
+    and height for its dimensions.
+
+    Note that `self` is a reference to *this* object, whichever object is
+    instantiated at the time this function is called. Different objects can
+    have their own x, y, width, and height values, thus serving as containers
+    for data. In this sense, they're very similar to structs in C.
+]]
 function Ball:init(x, y, width, height)
     self.x = x
     self.y = y
@@ -51,17 +64,32 @@ end
     Places the ball in the middle of the screen, with no movement.
 ]]
 function Ball:reset()
-    self.x = VIRTUAL_WIDTH / 2 - 2
-    self.y = VIRTUAL_HEIGHT / 2 - 2
+    self.x = VIRTUAL_WIDTH / 2 - self.width / 2
+    self.y = VIRTUAL_HEIGHT / 2 - self.height / 2
     self.dx = 0
     self.dy = 0
 end
 
+--[[
+    Updates the ball's position based on its velocity.
+]]
 function Ball:update(dt)
     self.x = self.x + self.dx * dt
     self.y = self.y + self.dy * dt
 end
 
+-- Duplicates the ball's velocity
+function Ball:duplVelocity()
+    self.dx = self.dx * 2
+    self.dy = self.dy * 2
+
+-- Splits the ball's velocity by 2
+function Ball:splitVelocity()
+    self.dx = self.dx / 2
+    self.dy = self.dy / 2
+end
+
+-- Renders the ball on the screen.
 function Ball:render()
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
 end

@@ -24,16 +24,16 @@
 
     Some of the code has been re-written to improve organization
     and readability. Some features have been added to improve and
-    accelerate the gameplay experience. New sounds effects has been
-    added to enhance the inmersibility.
+    accelerate the gameplay experience. New sounds effects have been
+    added to enhance the immersibility.
 
     New features:   Paddles are larger now but decrease in size
-                    everytime they hit the ball.
+                    every time they hit the ball.
                     ................................
 ]]
 
 -- Using Löve2D framework
-Love = require("love")
+local love = require("love")
 
 --[[
     "Push" is a library that will allow us to draw our game at a virtual
@@ -45,20 +45,20 @@ Push = require 'Utils/push'
 
 --[[
     Adding classes support for our code to encapsulate functions and
-    atributes in their own objects.
+    attributes in their own objects.
     https://github.com/vrld/hump/blob/master/class.lua
 ]]
 Class = require 'Utils/class'
 
 --[[
-    Importing the "Paddle" class, where the atributes and behavior of the
+    Importing the "Paddle" class, where the attributes and behavior of the
     paddles are defined.
 ]]
 require 'GameObjects/Paddle'
 
 --[[
-    Importing the "Ball" class, where the atributes and behavior of the
-    ball is defined.
+    Importing the "Ball" class, where the attributes and behavior of the
+    ball are defined.
 ]]
 require 'GameObjects/Ball'
 
@@ -92,7 +92,7 @@ function love.load()
     scoreFont = love.graphics.newFont('Resources/fonts/font.ttf', 32)
     love.graphics.setFont(smallFont)
 
-    -- Creating a dictionary with the game sound effecs
+    -- Creating a dictionary with the game sound effects
     sounds = {
         ['paddle_hit'] = love.audio.newSource('Resources/audio/soundEffects/paddle_hit.wav', 'static'),
         ['score'] = love.audio.newSource('Resources/audio/soundEffects/score.wav', 'static'),
@@ -122,6 +122,9 @@ function love.load()
     -- Initialize score variables
     player1Score = 0
     player2Score = 0
+
+    -- Powerups usage track
+    player1PU = 0
 
     -- Setting serving player to Player 1 by default
     servingPlayer = 1
@@ -292,8 +295,8 @@ function love.update(dt)
         ball:update(dt)
     end
 
-    player1:limit(dt)
-    player2:limit(dt)
+    player1:update(dt)
+    player2:update(dt)
 end
 
 --[[
@@ -344,7 +347,7 @@ function love.draw()
     -- begin drawing with Push, in our virtual resolution
     Push:apply('start')
 
-    love.graphics.clear(40, 45, 52, 255)
+    love.graphics.clear(0.16, 0.18, 0.20, 1.0)
     
     -- render different things depending on which part of the game we're in
     if gameState == 'start' then
@@ -397,6 +400,7 @@ end
 function displayFPS()
     -- simple FPS display across all states
     love.graphics.setFont(smallFont)
-    love.graphics.setColor(0, 255, 0, 255)
+    love.graphics.setColor(0, 1, 0, 1) -- use normalized RGBA values
     love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
+    love.graphics.setColor(1, 1, 1, 1) -- reset color to white
 end
