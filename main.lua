@@ -113,8 +113,8 @@ function love.load()
         Draw our player paddles; make them global so that they can be
         detected by other functions and modules
     ]]
-    player1 = Paddle(10, 30, 5, 60)
-    player2 = Paddle(VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 30, 5, 60)
+    player1 = Paddle(10, 30, 5, 50)
+    player2 = Paddle(VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 30, 5, 50)
 
     -- Draw a ball in the middle of the screen
     ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
@@ -123,12 +123,10 @@ function love.load()
     player1Score = 0
     player2Score = 0
 
-    -- either going to be 1 or 2; whomever is scored on gets to serve the
-    -- following turn
+    -- Setting serving player to Player 1 by default
     servingPlayer = 1
 
-    -- player who won the game; not set to a proper value until we reach
-    -- that state in the game
+    -- Create a variable to store the number of the winning player
     winningPlayer = 0
 
     -- The state of our game; can be any of the following:
@@ -159,6 +157,10 @@ end
 ]]
 function love.update(dt)
     if gameState == 'serve' then
+        -- When reached "serve" state, the paddles size must be reset.
+        player1:setHeight(50)
+        player2:setHeight(50)
+
         -- before switching to play, initialize ball's velocity based
         -- on player who last scored
         ball.dy = math.random(-50, 50)
@@ -168,15 +170,17 @@ function love.update(dt)
             ball.dx = -math.random(140, 200)
         end
     elseif gameState == 'play' then
-        -- detect ball collision with paddles, reversing dx if true and
-        -- slightly increasing it, then altering the dy based on the position
-        -- at which it collided, then playing a sound effect
+        --[[ 
+            Detect ball collision with paddles, reversing dx if true and
+            slightly increasing it, then altering the dy based on the position
+            at which it collided, then playing a sound effect
+        ]]
         if ball:collides(player1) then
             player1:shrink()
             ball.dx = -ball.dx * 1.03
             ball.x = player1.x + 5
 
-            -- keep velocity going in the same direction, but randomize it
+            -- Keep velocity going in the same direction, but randomize it
             if ball.dy < 0 then
                 ball.dy = -math.random(10, 150)
             else
@@ -190,7 +194,7 @@ function love.update(dt)
             ball.dx = -ball.dx * 1.03
             ball.x = player2.x - 4
 
-            -- keep velocity going in the same direction, but randomize it
+            -- Keep velocity going in the same direction, but randomize it
             if ball.dy < 0 then
                 ball.dy = -math.random(10, 150)
             else
@@ -200,15 +204,20 @@ function love.update(dt)
             sounds['paddle_hit']:play()
         end
 
-        -- detect upper and lower screen boundary collision, playing a sound
-        -- effect and reversing dy if true
+        --[[
+            Detect upper and lower screen boundary collision, playing a sound
+            effect and reversing dy if true
+        ]]
         if ball.y <= 0 then
             ball.y = 0
             ball.dy = -ball.dy
             sounds['wall_hit']:play()
         end
 
-        -- -4 to account for the ball's size
+        --[[
+            Checking if the ball is 4 units left to reach the bottom of the screen
+            in which case it should bounce already since the ball is 4 units sized
+        ]]
         if ball.y >= VIRTUAL_HEIGHT - 4 then
             ball.y = VIRTUAL_HEIGHT - 4
             ball.dy = -ball.dy
@@ -234,8 +243,10 @@ function love.update(dt)
             end
         end
 
-        -- if we reach the right edge of the screen, go back to serve
-        -- and update the score and serving player
+        --[[
+            If we reach the right edge of the screen, go back to serve
+            and update the score and serving player
+        ]]    
         if ball.x > VIRTUAL_WIDTH then
             servingPlayer = 2
             player1Score = player1Score + 1
@@ -296,6 +307,7 @@ function love.keypressed(key)
     if key == 'escape' then
         -- the function LÖVE2D uses to quit the application
         love.event.quit()
+    
     -- if we press enter during either the start or serve phase, it should
     -- transition to the next appropriate state
     elseif key == 'enter' or key == 'return' then
@@ -357,23 +369,21 @@ function love.draw()
         love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
     end
 
-    -- show the score before ball is rendered so it can move over the text
+    -- Show the score before ball is rendered so it can move over the text
     displayScore()
     
     player1:render()
     player2:render()
     ball:render()
 
-    -- display FPS for debugging; simply comment out to remove
+    -- Display FPS for debugging; simply comment out to remove
     displayFPS()
 
-    -- end our drawing to Push
+    -- End our drawing to Push
     Push:apply('end')
 end
 
---[[
-    Simple function for rendering the scores.
-]]
+-- Simple function for rendering the scores.
 function displayScore()
     -- score display
     love.graphics.setFont(scoreFont)
@@ -383,9 +393,7 @@ function displayScore()
         VIRTUAL_HEIGHT / 3)
 end
 
---[[
-    Renders the current FPS.
-]]
+-- Renders the current FPS.
 function displayFPS()
     -- simple FPS display across all states
     love.graphics.setFont(smallFont)
