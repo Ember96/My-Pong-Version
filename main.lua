@@ -125,6 +125,7 @@ function love.load()
 
     -- Powerups usage track
     player1PU = 0
+    player2PU = 0
 
     -- Setting serving player to Player 1 by default
     servingPlayer = 1
@@ -268,10 +269,8 @@ function love.update(dt)
         end
     end
 
-    --
-    -- paddles can move no matter what state we're in
-    --
-    -- player 1
+    -- Paddles can move no matter what state we're in
+    -- Player 1 movement
     if love.keyboard.isDown('w') then
         player1:moveUp()
     elseif love.keyboard.isDown('s') then
@@ -280,13 +279,39 @@ function love.update(dt)
         player1.dy = 0
     end
 
-    -- player 2
+    -- Player 2 movement
     if love.keyboard.isDown('up') then
         player2:moveUp()
     elseif love.keyboard.isDown('down') then
         player2:moveDown()
     else
         player2.dy = 0
+    end
+
+    -- Player 1 power up cast and check, only one powerup by game
+    -- Player 1 agressive powerup, duplicates ball speed
+    if love.keyboard.isDown('a') and player1PU == 0 then
+        ball:duplVelocity()
+        player1PU = player1PU + 1
+    end
+
+    -- Player 1 defensive powerup, grows the paddle
+    if love.keyboard.isDown('d') and player1PU == 0 then
+        player1:grow()
+        player1PU = player1PU + 1
+    end
+
+    -- Player 2 power up cast and check, only one powerup by game
+    -- Player 2 agressive powerup, duplicates ball speed
+    if love.keyboard.isDown('left') and player2PU == 0 then
+        ball:duplVelocity()
+        player2PU = player2PU + 1
+    end
+    
+    -- Player 2 defensive powerup, grows the paddle
+    if love.keyboard.isDown('right') and player2PU == 0 then
+        player2:grow()
+        player2PU = player2PU + 1
     end
 
     -- update our ball based on its DX and DY only if we're in play state;

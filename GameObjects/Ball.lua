@@ -82,6 +82,7 @@ end
 function Ball:duplVelocity()
     self.dx = self.dx * 2
     self.dy = self.dy * 2
+end
 
 -- Splits the ball's velocity by 2
 function Ball:splitVelocity()
