@@ -50,6 +50,9 @@ Push = require 'Utils/push'
 ]]
 Class = require 'Utils/class'
 
+-- Function that draws power up markers to the screen
+DrawPowerUps = require 'Utils/drawPowerUps'
+
 --[[
     Importing the "Paddle" class, where the attributes and behavior of the
     paddles are defined.
@@ -99,6 +102,18 @@ function love.load()
         ['wall_hit'] = love.audio.newSource('Resources/audio/soundEffects/wall_hit.wav', 'static')
     }
     
+    -- Creating a dictionary with the game icons
+    icons = {
+        ['aggressiveIcon'] = love.graphics.newImage('Resources/images/speedup.png'),
+        ['defensiveIcon'] = love.graphics.newImage('Resources/images/growth.png'),
+    }
+
+    if icons["agressiveIcon"] then
+        print("Loaded aggressiveIcon")
+    else
+        print("Could not load agressiveIcon")
+    end
+
     --[[
         Initialize our virtual resolution, which will be rendered within our
         actual window no matter its dimensions
@@ -403,6 +418,9 @@ function love.draw()
     player1:render()
     player2:render()
     ball:render()
+
+    -- Draw the power ups
+    DrawPowerUps(icons, player1PU, player2PU, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, smallFont)
 
     -- Display FPS for debugging; simply comment out to remove
     displayFPS()
