@@ -60,11 +60,6 @@ function Paddle:setSpeed(speed)
     self.speed = speed
 end
 
--- Returns the current height of the paddle
-function Paddle:getHeight()
-    return self.height
-end
-
 -- Sets the current height of the paddle
 function Paddle:setHeight(height)
     self.height = height
