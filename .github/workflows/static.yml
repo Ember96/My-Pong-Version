@@ -47,8 +47,7 @@ jobs:
 
       - name: Build game with Love2D
         # Replace 'dist' with your actual output directory
-        run: love.js FastPong.love ./dist --title "FastPong" --memory 67108864
-
+        run: love.js FastPong.love ./dist --title "FastPong"
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
