@@ -108,12 +108,6 @@ function love.load()
         ['defensiveIcon'] = love.graphics.newImage('Resources/images/growth.png'),
     }
 
-    if icons["agressiveIcon"] then
-        print("Loaded aggressiveIcon")
-    else
-        print("Could not load agressiveIcon")
-    end
-
     --[[
         Initialize our virtual resolution, which will be rendered within our
         actual window no matter its dimensions
